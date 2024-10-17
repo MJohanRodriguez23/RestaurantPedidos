@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Factura</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+</head>
+
+<body>
+
+    <nav class="navbar bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="https://img.freepik.com/vector-premium/diseno-logotipo-restaurante_1128391-17280.jpg"
+                    alt="Logo" width="110" height="100" class="d-inline-block align-text-top">
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h3>Generar Factura</h3>
+        <form id="facturaForm">
+            <div class="mb-3">
+                <label for="productos" class="form-label">Seleccione los productos</label>
+                <select class="form-select" id="productos">
+                    <option value="0">Seleccione un producto</option>
+                    <option value="220">Hamburguesa Especial</option>
+                    <option value="120">Hamburguesa Doble Carne</option>
+                    <option value="140">Hamburguesa Champiñón</option>
+                    <option value="132">Hamburguesa Doble Queso</option>
+                    <option value="30">Jugo de Frutas</option>
+                    <option value="40">Refresco</option>
+                    <option value="20">Agua de Piña</option>
+                    <option value="45">Cerveza</option>
+                    <option value="65">Alitas 10 piezas</option>
+                    <option value="90">Papas a la Francesa</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-dark" onclick="agregarProducto()">Añadir Producto</button>
+        </form>
+
+        <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="incluirPropina" />
+            <label class="form-check-label" for="incluirPropina">¿Incluir 10% de propina?</label>
+        </div>
+
+        <div class="mt-4">
+            <h4>Productos Seleccionados</h4>
+            <ul id="listaProductos" class="list-group"></ul>
+            <div class="mt-3">
+                <strong>Total: $<span id="totalFactura">0</span></strong>
+            </div>
+        </div>
+
+        <button class="btn btn-dark mt-4" onclick="generarFactura()">Generar Factura</button>
+
+        <div id="facturaGenerada" class="mt-5" style="display: none;">
+            <h4>Factura</h4>
+            <p><strong>Número de Pedido:</strong> <span id="numeroPedido"></span></p>
+            <p><strong>Fecha:</strong> <span id="fechaFactura"></span></p>
+            <ul id="detalleFactura" class="list-group"></ul>
+            <div class="mt-3">
+                <strong>Total: $<span id="totalFinal"></span></strong>
+            </div>
+            <div id="seccionPropina" class="mt-2" style="display: none;">
+                <strong>Propina: $<span id="propina"></span></strong>
+            </div>
+            <div class="mt-3">
+                <strong>Total con Propina: $<span id="totalConPropina"></span></strong>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <h4>imprimir</h4>
+            <button class="btn btn-dark" onclick="convertirFacturaAImagen()">imprimir</button>
+        </div>
+    </div>
+
+    <br>
+
+    <footer class="bg-dark text-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-uppercase">Tu Restaurante Favorito</h5>
+                    <p>Disfruta de la mejor comida, en el mejor ambiente. ¡Nosotros cocinamos con amor!</p>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-uppercase">Explorar</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">Inicio</a></li>
+                        <li><a href="#" class="text-light">Menú</a></li>
+                        <li><a href="#" class="text-light">Promociones</a></li>
+                        <li><a href="#" class="text-light">Contáctanos</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4 mb-4 text-center">
+                    <h5 class="text-uppercase">Síguenos</h5>
+                    <a href="#" class="me-3" style="color: #3b5998;">
+                        <i class="fab fa-facebook fa"></i>
+                    </a>
+                    <a href="#" class="me-3" style="color: #00acee;">
+                        <i class="fab fa-twitter fa-2x"></i>
+                    </a>
+                    <a href="#" class="me-3" style="color: #C13584;">
+                        <i class="fab fa-instagram fa-2x"></i>
+                    </a>
+                    <a href="#" style="color: #FF0000;">
+                        <i class="fab fa-youtube fa-2x"></i>
+                    </a>
+                </div>
+            </div>
+
+            <hr class="my-4 text-light">
+
+            <div class="text-center">
+                <p>&copy; 2024 Tu Restaurante Favorito. Todos los derechos reservados.</p>
+                <p class="small">Desarrollado con 💻 y 🍔 por un equipo apasionado.</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        let productosSeleccionados = [];
+        let total = 0;
+
+        function agregarProducto() {
+            const selectProductos = document.getElementById("productos");
+            const precioProducto = parseFloat(selectProductos.value);
+            const nombreProducto = selectProductos.options[selectProductos.selectedIndex].text;
+
+            if (precioProducto > 0) {
+                productosSeleccionados.push({ nombre: nombreProducto, precio: precioProducto });
+                total += precioProducto;
+
+                actualizarListaProductos();
+            } else {
+                alert("Por favor, seleccione un producto válido.");
+            }
+        }
+
+        function actualizarListaProductos() {
+            const lista = document.getElementById("listaProductos");
+            lista.innerHTML = "";
+
+            productosSeleccionados.forEach((producto) => {
+                const item = document.createElement("li");
+                item.classList.add("list-group-item");
+                item.textContent = `${producto.nombre} - $${producto.precio}`;
+                lista.appendChild(item);
+            });
+
+            document.getElementById("totalFactura").textContent = total.toFixed(2);
+        }
+
+        function generarFactura() {
+            if (productosSeleccionados.length === 0) {
+                alert("No hay productos seleccionados para generar la factura.");
+                return;
+            }
+
+            const numeroPedido = Math.floor(Math.random() * 1000) + 1;
+
+            const fecha = new Date().toLocaleDateString();
+
+            document.getElementById("numeroPedido").textContent = numeroPedido;
+            document.getElementById("fechaFactura").textContent = fecha;
+
+            const detalleFactura = document.getElementById("detalleFactura");
+            detalleFactura.innerHTML = "";
+            productosSeleccionados.forEach(producto => {
+                const item = document.createElement("li");
+                item.classList.add("list-group-item");
+                item.textContent = `${producto.nombre} - $${producto.precio}`;
+                detalleFactura.appendChild(item);
+            });
+
+            document.getElementById("totalFinal").textContent = total.toFixed(2);
+
+            const incluirPropina = document.getElementById("incluirPropina").checked;
+            const propina = incluirPropina ? total * 0.10 : 0;
+
+            if (incluirPropina) {
+                document.getElementById("propina").textContent = propina.toFixed(2);
+                document.getElementById("seccionPropina").style.display = "block";
+                document.getElementById("totalConPropina").textContent = (total + propina).toFixed(2);
+            } else {
+                document.getElementById("seccionPropina").style.display = "none";
+                document.getElementById("totalConPropina").textContent = total.toFixed(2);
+            }
+
+            document.getElementById("facturaGenerada").style.display = "block";
+        }
+
+        function convertirFacturaAImagen() {
+            const factura = document.getElementById("facturaGenerada");
+
+            if (factura.style.display === "none") {
+                alert("Primero genera la factura antes de convertirla a imagen.");
+                return;
+            }
+
+            html2canvas(factura).then(function (canvas) {
+                const image = canvas.toDataURL("image/png");
+
+                const nuevaVentana = window.open();
+                nuevaVentana.document.write('<img src="' + image + '" alt="Factura">');
+            }).catch(function (error) {
+                console.error("Error generando la imagen:", error);
+            });
+        }
+    </script>
+
+</body>
+
+</html>
